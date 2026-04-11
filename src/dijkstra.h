@@ -1,5 +1,5 @@
+#pragma once
 #include <bits/stdc++.h>
 #include "heap.h"
-#include "dijkstra.h"
 
 using namespace std;
