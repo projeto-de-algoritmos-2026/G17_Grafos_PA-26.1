@@ -38,15 +38,44 @@ $$𝑂((𝑉+𝐸)log⁡𝑉)$$
 Em que $V$ é a quantidade de vértices e $E$ a quantidade de arestas. 
 
 ## Screenshots
-Adicione 3 ou mais screenshots do projeto em funcionamento.
+
+O projeto inicia desta forma: 
+![falhou](img/inicio.png)
+
+Esta é a execução do caminho aeroporto para o mercado:
+![falhou](img/aeroporto_mercado.png)
+
+Esta é a execução do caminho da zona leste para o bairro oeste:
+![falhou](img/leste_oeste.png)
 
 ## Instalação 
-Linguagem: xxxxxx<br>
-Framework: (caso exista)<br>
+Linguagem: C++<br>
+Framework: SFML<br>
 Descreva os pré-requisitos para rodar o seu projeto e os comandos necessários.
 
-## Uso 
-Explique como usar seu projeto caso haja algum passo a passo após o comando de execução.
+A linguagem C++ foi escolhida porque os integrantes do grupo desejavam se aprofundar nela, especialmente com foco na disciplina de Programação Competitiva.
 
-## Outros 
-Quaisquer outras informações sobre seu projeto podem ser descritas abaixo.
+Já a biblioteca SFML foi utilizada para a parte gráfica por ser fácil de usar, leve e permitir criar interfaces visuais de forma simples.
+
+### Linux
+
+#### Instale dependências
+
+```bash
+sudo apt install build-essential libsfml-dev
+```
+
+#### Compile o projeto e execute
+
+```bash
+g++ main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+./main
+```
+
+## Uso 
+
+Para utilizar o programa, selecione dois nós com o mouse: primeiro a origem e depois o destino. Em seguida, o sistema calculará e exibirá o melhor caminho entre eles, destacado em amarelo.
+
+No canto superior esquerdo, há um painel onde é possível visualizar o número de nós presentes no caminho, além de outras informações.
+
+Ao pressionar a tecla Espaço, o caminho é limpo.
