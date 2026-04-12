@@ -51,7 +51,6 @@ Esta é a execução do caminho da zona leste para o bairro oeste:
 ## Instalação 
 Linguagem: C++<br>
 Framework: SFML<br>
-Descreva os pré-requisitos para rodar o seu projeto e os comandos necessários.
 
 A linguagem C++ foi escolhida porque os integrantes do grupo desejavam se aprofundar nela, especialmente com foco na disciplina de Programação Competitiva.
 
