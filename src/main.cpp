@@ -139,19 +139,42 @@ void drawArrow(sf::RenderWindow& window, sf::Vector2f pa, sf::Vector2f pb, sf::C
 }
 
 
-int main(){
-    const unsigned int WIN_W = 820;
-    const unsigned int WIN_H = 740;
+sf::View getLetterboxView(sf::View view, int winW, int winH) {
+    float windowRatio = (float)winW / (float)winH;
+    float viewRatio   = view.getSize().x / view.getSize().y;
+    float sizeX = 1.f, sizeY = 1.f;
+    float posX  = 0.f, posY  = 0.f;
 
-    sf::RenderWindow window(sf::VideoMode(WIN_W, WIN_H), "Patos de Minas - Dijkstra");
+    if (windowRatio >= viewRatio) {
+        sizeX = viewRatio / windowRatio;
+        posX  = (1.f - sizeX) / 2.f;
+    } else {
+        sizeY = windowRatio / viewRatio;
+        posY  = (1.f - sizeY) / 2.f;
+    }
+    view.setViewport(sf::FloatRect(posX, posY, sizeX, sizeY));
+    return view;
+}
+
+int main(){
+    const float LOGICAL_W = 820.f;
+    const float LOGICAL_H = 740.f;
+
+    sf::RenderWindow window(sf::VideoMode(820, 740), "Patos de Minas - Dijkstra",
+                            sf::Style::Default | sf::Style::Resize);
     window.setFramerateLimit(60);
+
+    sf::View gameView(sf::FloatRect(0.f, 0.f, LOGICAL_W, LOGICAL_H));
+    gameView = getLetterboxView(gameView, 820, 740);
+
+    sf::View uiView(sf::FloatRect(0.f, 0.f, 820.f, 740.f));
 
     sf::Font font;
     bool hasFont = font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf");
 
-    int startNode = 0;
-    int endNode   = 14;
-    DijkstraResult result = runDijkstra(startNode, endNode, NUM_NODES, EDGES);
+    int startNode = -1;
+    int endNode   = -1;
+    DijkstraResult result;
 
     int  animStep  = 0;
     bool animDone  = false;
@@ -165,8 +188,16 @@ int main(){
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
 
+            if (event.type == sf::Event::Resized) {
+                gameView = sf::View(sf::FloatRect(0.f, 0.f, LOGICAL_W, LOGICAL_H));
+                gameView = getLetterboxView(gameView, event.size.width, event.size.height);
+                uiView   = sf::View(sf::FloatRect(0.f, 0.f,
+                                    (float)event.size.width, (float)event.size.height));
+            }
+
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                sf::Vector2f mpos((float)event.mouseButton.x, (float)event.mouseButton.y);
+                sf::Vector2f mpos = window.mapPixelToCoords(
+                    {event.mouseButton.x, event.mouseButton.y}, gameView);
                 for (int i = 0; i < NUM_NODES; i++) {
                     sf::Vector2f delta = mpos - NODE_POS[i];
                     float d = sqrt(delta.x*delta.x + delta.y*delta.y);
@@ -188,8 +219,12 @@ int main(){
             }
 
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-                animStep = 0;
-                animDone = false;
+                startNode  = -1;
+                endNode    = -1;
+                result     = DijkstraResult();
+                animStep   = 0;
+                animDone   = false;
+                clickPhase = 0;
                 animClock.restart();
             }
         }
@@ -206,7 +241,12 @@ int main(){
             }
         }
 
-        window.clear(sf::Color(0, 0, 0));
+        window.clear(sf::Color::Black);
+        window.setView(gameView);
+
+        sf::RectangleShape bg(sf::Vector2f(LOGICAL_W, LOGICAL_H));
+        bg.setFillColor(sf::Color(0, 0, 0));
+        window.draw(bg);
 
         for (auto& e : EDGES) {
             sf::Vector2f pa = NODE_POS[e.from];
@@ -234,8 +274,8 @@ int main(){
 
         for (int i = 0; i < NUM_NODES; i++) {
             sf::Vector2f pos = NODE_POS[i];
-            bool isStart = (i == startNode);
-            bool isEnd   = (i == endNode);
+            bool isStart = (startNode >= 0 && i == startNode);
+            bool isEnd   = (endNode   >= 0 && i == endNode);
             bool animated = false;
             for (int s = 0; s <= animStep && s < (int)result.path.size(); s++)
                 if (result.path[s] == i) { animated = true; break; }
@@ -261,8 +301,77 @@ int main(){
             node.setOutlineThickness(2.f);
             node.setOutlineColor(sf::Color(190, 195, 210));
             window.draw(node);
+
+            if (hasFont) {
+                sf::Text label;
+                label.setFont(font);
+                label.setString(NODE_NAMES[i]);
+                label.setCharacterSize(11);
+                label.setFillColor(sf::Color(215, 220, 232));
+                sf::FloatRect b = label.getLocalBounds();
+                label.setOrigin(b.width / 2.f, 0.f);
+                label.setPosition(pos.x, pos.y + 17.f);
+                window.draw(label);
+            }
         }
 
+        if (hasFont) {
+            window.setView(uiView);
+
+            float panelH = (startNode < 0 || endNode < 0) ? 108.f
+                         : result.path.empty()            ? 108.f
+                                                          : 118.f;
+            sf::RectangleShape panel(sf::Vector2f(280.f, panelH));
+            panel.setPosition(10.f, 10.f);
+            panel.setFillColor(sf::Color(20, 22, 28, 220));
+            panel.setOutlineThickness(1.f);
+            panel.setOutlineColor(sf::Color(60, 65, 80));
+            window.draw(panel);
+
+            sf::Text info;
+            info.setFont(font);
+            info.setCharacterSize(12);
+            info.setFillColor(sf::Color(200, 205, 215));
+            info.setString("De: " + (startNode >= 0 ? NODE_NAMES[startNode] : string("---")));
+            info.setPosition(16.f, 16.f);
+            window.draw(info);
+
+            info.setString("Para: " + (endNode >= 0 ? NODE_NAMES[endNode] : string("---")));
+            info.setPosition(16.f, 34.f);
+            window.draw(info);
+
+            if (startNode < 0 || endNode < 0) {
+            } else if (result.path.empty()) {
+                info.setFillColor(sf::Color(220, 80, 60));
+                info.setString("Sem caminho disponivel!");
+                info.setPosition(16.f, 54.f);
+                window.draw(info);
+            } else {
+                info.setFillColor(sf::Color(255, 210, 60));
+                info.setString("Tempo: " + to_string(result.totalCost) + " min  |  " +
+                               to_string((int)result.path.size()) + " nos");
+                info.setPosition(16.f, 54.f);
+                window.draw(info);
+
+                string pathStr = "";
+                for (int i = 0; i < (int)result.path.size(); i++) {
+                    if (i > 0) pathStr += " > ";
+                    pathStr += to_string(result.path[i]);
+                }
+                info.setCharacterSize(10);
+                info.setFillColor(sf::Color(130, 135, 150));
+                info.setString(pathStr);
+                info.setPosition(16.f, 74.f);
+                window.draw(info);
+            }
+
+            info.setCharacterSize(10);
+            info.setFillColor(sf::Color(100, 105, 120));
+            string phase = clickPhase == 0 ? "Clique: nova ORIGEM" : "Clique: novo DESTINO";
+            info.setString(phase + "  |  Espaco: resetar");
+            info.setPosition(16.f, 92.f);
+            window.draw(info);
+        }
 
         window.display();
     }
