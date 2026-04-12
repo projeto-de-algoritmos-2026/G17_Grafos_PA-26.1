@@ -17,7 +17,6 @@ DijkstraResult runDijkstra(int start, int target, int NUM_NODES, const vector<Ed
     vector<vector<pair<int,int>>> adj(NUM_NODES);
     for (auto& e : edges) {
         adj[e.from].push_back({e.to,   e.weight});
-        adj[e.to  ].push_back({e.from, e.weight});
     }
 
     vector<int> dist(NUM_NODES, numeric_limits<int>::max());
