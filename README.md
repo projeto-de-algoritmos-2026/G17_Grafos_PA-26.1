@@ -78,3 +78,7 @@ Para utilizar o programa, selecione dois nós com o mouse: primeiro a origem e d
 No canto superior esquerdo, há um painel onde é possível visualizar o número de nós presentes no caminho, além de outras informações.
 
 Ao pressionar a tecla Espaço, o caminho é limpo.
+
+## Vídeo de apresentação
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6jTXTw3t7yI?si=xvXoeCdphAHw0jkW" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
